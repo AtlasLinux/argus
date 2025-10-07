@@ -1,33 +1,14 @@
 CC = gcc
-CFLAGS = -O0 -g3 -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion -Wno-switch -fsanitize=undefined -fsanitize-trap
-
-BUILD_DIR = build
-SRC_DIR = src
-
-SRC = $(shell find $(SRC_DIR) -name '*.c')
-OBJ = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRC))
-
-TARGET = build/argus
-
-.PHONY: all clean run crun
+CFLAGS = -std=gnu11 -O2 -Wall -Wextra -Iinclude
+LDFLAGS = -ldrm -lwayland-server -linput -ludev -lm
+SRCS = src/main.c src/drm_simple.c src/wayland.c src/input.c
+OBJS = $(SRCS:.c=.o)
+TARGET = argus
 
 all: $(TARGET)
 
-$(TARGET): $(OBJ)
-	$(CC) $(CFLAGS) -o $@ $^
-
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
-	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
-
-$(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o build/$@ $(OBJS) $(LDFLAGS)
 
 clean:
-	rm -rf $(BUILD_DIR)
-	rm -f $(TARGET)
-
-run: all
-	@./$(TARGET)
-
-crun: clean run
+	rm -f $(OBJS) $(TARGET)
